@@ -1,0 +1,54 @@
+.divTable {
+  display: block;
+  padding: 0px;
+  background-color: transparent;
+  margin: 0px;
+  line-Height: 26px;
+}
+
+.divHeaderRow {
+  width: 900px;
+  display: flex;
+  position: relative;
+}
+
+.divHeaderCell {
+  flex-shrink: 0;
+  width: 150px;
+  border: 1px solid #eee;
+  position: relative;
+  font-family: 'arial', helvetica, 'sans-serif';
+  font-size: 13px;
+  font-style: bold;
+  background-color: #cccccc;
+  float: left;
+}
+
+
+.divRow {
+  width: 900px;
+  display: flex;
+  position: relative;
+  color: #000000;
+}
+
+.divCell {
+  flex-shrink: 0;
+  width: 150px;
+  border: 1px solid #eee;
+  position: relative;
+  color: #000000;
+  font-size: 12px;
+  float: left;
+  text-align: left;
+  letter-spacing: 0px;
+  word-spacing: 0px;
+}
+
+.divRow:nth-child(2n) {
+  background-color: #f0f0f0
+}
+
+.table-body {
+  overflow: hidden;
+}

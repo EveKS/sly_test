@@ -1,0 +1,19 @@
+.tables-container {
+    display: -webkit-inline-flex;
+    display: inline-flex;
+    position: relative;
+    top: 4rem;
+}
+
+.first-table-container {
+    width: 200px;
+}
+
+.second-table-container {
+    width: calc(100vw - 230px);
+}
+
+.first-table-container .table-body,
+.second-table-container .table-body {
+    height: 500px;
+}

@@ -1,0 +1,46 @@
+.scrollbar {
+    margin: 0 0 1em 0;
+    height: 2px;
+    background: #ccc;
+    line-height: 0;
+}
+
+.scrollbar .handle {
+    width: 100px;
+    height: 100%;
+    background: #292a33;
+    cursor: pointer;
+}
+
+.scrollbar .handle .mousearea {
+    position: absolute;
+    top: -9px;
+    left: 0;
+    width: 100%;
+    height: 20px;
+}
+
+.scrollbar-v {
+    position: absolute;
+    right: 0;
+    top: 27px;
+    width: 2px;
+    height: 500px;
+    background: #ccc;
+    line-height: 0;
+}
+
+.scrollbar-v .handle {
+    width: 100%;
+    height: 100px;
+    background: #292a33;
+    cursor: pointer;
+}
+
+.scrollbar-v .handle .mousearea {
+    position: absolute;
+    top: 0;
+    left: -10px;
+    width: 22px;
+    height: 100%;
+}

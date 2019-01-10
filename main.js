@@ -1,32 +1,7 @@
 $(function () {
     (function () {
-        let isSyncingLeftScroll = false,
-            isSyncingRightScroll = false,
-            leftDiv = $('#first-table .table-body').get(0),
-            rightDiv = $('#second-table .table-body').get(0);
-
-        leftDiv.onscroll = function () {
-            if (!isSyncingLeftScroll) {
-                isSyncingRightScroll = true;
-                rightDiv.scrollTop = this.scrollTop;
-            }
-
-            isSyncingLeftScroll = false;
-        };
-
-        rightDiv.onscroll = function () {
-            if (!isSyncingRightScroll) {
-                isSyncingLeftScroll = true;
-                leftDiv.scrollTop = this.scrollTop;
-            }
-
-            isSyncingRightScroll = false;
-        };
-    }());
-
-    (function () {
-        let $firstTable = $('#first-table').parent(),
-            $secondTable = $('#second-table').parent(),
+        let $firstTable = $('.first-table-container'),
+            $secondTable = $('.second-table-container'),
             options = {
                 horizontal: 1,
                 itemNav: 'basic',
@@ -44,16 +19,18 @@ $(function () {
 
         // Call Sly on frame
         $firstTable.sly(Object.assign(options, {
-            scrollBar: $firstTable.find('.scrollbar')
+            scrollBar: $firstTable.find('.scrollbar'),
+            scrollSource: $('#first-table .table-head')
         }));
         $secondTable.sly(Object.assign(options, {
-            scrollBar: $secondTable.find('.scrollbar')
+            scrollBar: $secondTable.find('.scrollbar'),
+            scrollSource: $('#second-table .table-head')
         }));
     }());
 
     (function () {
         let $secondTable = $('#first-table .table-body, #second-table .table-body');
-        console.log($secondTable.closest('.second-table-container').find('.scrollbar-v'))
+
         // Call Sly on frame
         $secondTable.sly({
             speed: 50,
@@ -64,5 +41,44 @@ $(function () {
             dynamicHandle: 1,
             clickBar: 1,
         });
+    }());
+
+    (function () {
+        let minWidth = 200,
+            $firstTable = $('.first-table-container');
+
+        $firstTable.resizable({
+            _resizeWidth: 0,
+            handles: "e",
+            resize: function (ev, e) {
+                let fTableWidth = $('#first-table').width();
+
+                if (e.size.width > fTableWidth) {
+                    e.size.width = fTableWidth;
+                } else if (e.size.width < minWidth) {
+                    e.size.width = minWidth;
+                    return;
+                }
+
+                let tMid = $('.second-table-container').width() - $('#second-table').width(),
+                    innerWidth = $(document.body).width(),
+                    tableWidth = $('.second-table-container').width(),
+                    sumWidth = e.size.width + tableWidth,
+                    middleWidth = innerWidth - sumWidth + tMid;
+
+                $('.second-table-container').width(innerWidth - e.size.width);
+                $firstTable.sly('reload');
+                $('.second-table-container').sly('reload');
+                $('.scrollbar-v').css({
+                    transform: `translateZ(0) translateX(${middleWidth > 0 ? 0 : middleWidth}px)`
+                });
+            }
+        });
+
+        $('.second-table-container').get(0).addEventListener('sly.scroll', (e) => {
+            if ($('.second-table-container').is(e.target)) {
+                console.log(e, e.pos);
+            }
+        }, false);
     }());
 })

@@ -6,7 +6,8 @@
  * http://opensource.org/licenses/MIT
  */
 
-; (function ($, w, undefined) {
+;
+(function ($, w, undefined) {
     'use strict';
 
     var pluginName = 'sly';
@@ -51,15 +52,15 @@
         if (!sly || sly.options.scrollHijack < time - lastGlobalWheel) lastGlobalWheel = time;
     });
 
-	/**
-	 * Sly.
-	 *
-	 * @class
-	 *
-	 * @param {Element} frame       DOM element of sly container.
-	 * @param {Object}  options     Object with options.
-	 * @param {Object}  callbackMap Callbacks map.
-	 */
+    /**
+     * Sly.
+     *
+     * @class
+     *
+     * @param {Element} frame       DOM element of sly container.
+     * @param {Object}  options     Object with options.
+     * @param {Object}  callbackMap Callbacks map.
+     */
     function Sly(frame, options, callbackMap) {
         if (!(this instanceof Sly)) return new Sly(frame, options, callbackMap);
 
@@ -166,14 +167,38 @@
         self.options = o;
         self.dragging = dragging;
 
-		/**
-		 * Loading function.
-		 *
-		 * Populate arrays, set sizes, bind events, ...
-		 *
-		 * @param {Boolean} [isInit] Whether load is called from within self.init().
-		 * @return {Void}
-		 */
+        // sly.scroll
+        const slyScrollEvent = {
+            event: {}
+        };
+
+        // init sly.scroll event
+        (function () {
+            const slyScroll = 'sly.scroll';
+
+            if (typeof Event === 'function') {
+                slyScrollEvent.event = new Event(slyScroll, {
+                    bubbles: true,
+                    cancelable: true
+                });
+            } else {
+                slyScrollEvent.event = document.createEvent('Event');
+                slyScrollEvent.event.initEvent(slyScroll, true, true);
+            }
+
+            slyScrollEvent.event.pos = (function () {
+                return pos;
+            }());
+        }());
+
+        /**
+         * Loading function.
+         *
+         * Populate arrays, set sizes, bind events, ...
+         *
+         * @param {Boolean} [isInit] Whether load is called from within self.init().
+         * @return {Void}
+         */
         function load(isInit) {
             // Local variables
             var lastItemsCount = 0;
@@ -199,7 +224,7 @@
 
                 // Reset itemNav related variables
                 $items = $slidee.children(o.itemSelector);
-                
+
                 items.length = 0;
 
                 // Needed variables
@@ -216,51 +241,51 @@
 
                 // Iterate through items
                 $items.each(function (i, element) {
-					// Item
-					var $item = $(element);
-					var rect = element.getBoundingClientRect();
-					var itemSize = round(o.horizontal ? rect.width || rect.right - rect.left : rect.height || rect.bottom - rect.top);
-					var itemMarginStart = getPx($item, o.horizontal ? 'marginLeft' : 'marginTop');
-					var itemMarginEnd = getPx($item, o.horizontal ? 'marginRight' : 'marginBottom');
-					var itemSizeFull = itemSize + itemMarginStart + itemMarginEnd;
-					var singleSpaced = !itemMarginStart || !itemMarginEnd;
-					var item = {};
-					item.el = element;
-					item.size = singleSpaced ? itemSize : itemSizeFull;
-					item.half = item.size / 2;
-					item.start = slideeSize + (singleSpaced ? itemMarginStart : 0);
-					item.center = item.start - round(frameSize / 2 - item.size / 2);
-					item.end = item.start - frameSize + item.size;
+                    // Item
+                    var $item = $(element);
+                    var rect = element.getBoundingClientRect();
+                    var itemSize = round(o.horizontal ? rect.width || rect.right - rect.left : rect.height || rect.bottom - rect.top);
+                    var itemMarginStart = getPx($item, o.horizontal ? 'marginLeft' : 'marginTop');
+                    var itemMarginEnd = getPx($item, o.horizontal ? 'marginRight' : 'marginBottom');
+                    var itemSizeFull = itemSize + itemMarginStart + itemMarginEnd;
+                    var singleSpaced = !itemMarginStart || !itemMarginEnd;
+                    var item = {};
+                    item.el = element;
+                    item.size = singleSpaced ? itemSize : itemSizeFull;
+                    item.half = item.size / 2;
+                    item.start = 0; // slideeSize + (singleSpaced ? itemMarginStart : 0);
+                    item.center = item.start - round(frameSize / 2 - item.size / 2);
+                    item.end = item.start - frameSize + item.size;
 
-					// Account for slidee padding
-					if (!i) {
-						slideeSize += paddingStart;
-					}
+                    // Account for slidee padding
+                    if (!i) {
+                        slideeSize += paddingStart;
+                    }
 
-					// Increment slidee size for size of the active element
-					slideeSize += itemSizeFull;
+                    // Increment slidee size for size of the active element
+                    slideeSize = itemSizeFull;
 
-					// Try to account for vertical margin collapsing in vertical mode
-					// It's not bulletproof, but should work in 99% of cases
-					if (!o.horizontal && !areFloated) {
-						// Subtract smaller margin, but only when top margin is not 0, and this is not the first element
-						if (itemMarginEnd && itemMarginStart && i > 0) {
-							slideeSize -= min(itemMarginStart, itemMarginEnd);
-						}
-					}
+                    // Try to account for vertical margin collapsing in vertical mode
+                    // It's not bulletproof, but should work in 99% of cases
+                    if (!o.horizontal && !areFloated) {
+                        // Subtract smaller margin, but only when top margin is not 0, and this is not the first element
+                        if (itemMarginEnd && itemMarginStart && i > 0) {
+                            slideeSize -= min(itemMarginStart, itemMarginEnd);
+                        }
+                    }
 
-					// Things to be done on last item
-					if (i === lastItemIndex) {
-						item.end += paddingEnd;
-						slideeSize += paddingEnd;
-						ignoredMargin = singleSpaced ? itemMarginEnd : 0;
-					}
+                    // Things to be done on last item
+                    if (i === lastItemIndex) {
+                        item.end += paddingEnd;
+                        slideeSize += paddingEnd;
+                        ignoredMargin = singleSpaced ? itemMarginEnd : 0;
+                    }
 
-					// Add item object to items array
-					items.push(item);
-					lastItem = item;
-				});
-console.log(items)
+                    // Add item object to items array
+                    items.push(item);
+                    lastItem = item;
+                });
+
                 // Resize SLIDEE to fit all items
                 $slidee[0].style[o.horizontal ? 'width' : 'height'] = (borderBox ? slideeSize : slideeSize - paddingStart - paddingEnd) + 'px';
 
@@ -363,17 +388,19 @@ console.log(items)
             // Trigger load event
             trigger('load');
         }
-        self.reload = function () { load(); };
+        self.reload = function () {
+            load();
+        };
 
-		/**
-		 * Animate to a position.
-		 *
-		 * @param {Int}  newPos    New position.
-		 * @param {Bool} immediate Reposition immediately without an animation.
-		 * @param {Bool} dontAlign Do not align items, use the raw position passed in first argument.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Animate to a position.
+         *
+         * @param {Int}  newPos    New position.
+         * @param {Bool} immediate Reposition immediately without an animation.
+         * @param {Bool} dontAlign Do not align items, use the raw position passed in first argument.
+         *
+         * @return {Void}
+         */
         function slideTo(newPos, immediate, dontAlign) {
             // Align items
             if (itemNav && dragging.released && !dontAlign) {
@@ -433,11 +460,11 @@ console.log(items)
             syncPagesbar();
         }
 
-		/**
-		 * Render animation frame.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Render animation frame.
+         *
+         * @return {Void}
+         */
         function render() {
             if (!self.initialized) {
                 return;
@@ -484,6 +511,7 @@ console.log(items)
 
             // Update SLIDEE position
             if (!parallax) {
+                frame.dispatchEvent(slyScrollEvent.event);
                 if (transform) {
                     $slidee[0].style[transform] = gpuAcceleration + (o.horizontal ? 'translateX' : 'translateY') + '(' + (-pos.cur) + 'px)';
                 } else {
@@ -499,11 +527,11 @@ console.log(items)
             syncScrollbar();
         }
 
-		/**
-		 * Synchronizes scrollbar with the SLIDEE.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Synchronizes scrollbar with the SLIDEE.
+         *
+         * @return {Void}
+         */
         function syncScrollbar() {
             if ($handle.length) {
                 hPos.cur = pos.start === pos.end ? 0 : (((dragging.init && !dragging.slidee) ? pos.dest : pos.cur) - pos.start) / (pos.end - pos.start) * hPos.end;
@@ -519,11 +547,11 @@ console.log(items)
             }
         }
 
-		/**
-		 * Synchronizes pagesbar with SLIDEE.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Synchronizes pagesbar with SLIDEE.
+         *
+         * @return {Void}
+         */
         function syncPagesbar() {
             if ($pages[0] && last.page !== rel.activePage) {
                 last.page = rel.activePage;
@@ -532,13 +560,13 @@ console.log(items)
             }
         }
 
-		/**
-		 * Returns the position object.
-		 *
-		 * @param {Mixed} item
-		 *
-		 * @return {Object}
-		 */
+        /**
+         * Returns the position object.
+         *
+         * @param {Mixed} item
+         *
+         * @return {Object}
+         */
         self.getPos = function (item) {
             if (itemNav) {
                 var index = getIndex(item);
@@ -562,14 +590,14 @@ console.log(items)
             }
         };
 
-		/**
-		 * Continuous move in a specified direction.
-		 *
-		 * @param  {Bool} forward True for forward movement, otherwise it'll go backwards.
-		 * @param  {Int}  speed   Movement speed in pixels per frame. Overrides options.moveBy value.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Continuous move in a specified direction.
+         *
+         * @param  {Bool} forward True for forward movement, otherwise it'll go backwards.
+         * @param  {Int}  speed   Movement speed in pixels per frame. Overrides options.moveBy value.
+         *
+         * @return {Void}
+         */
         self.moveBy = function (speed) {
             move.speed = speed;
             // If already initiated, or there is nowhere to move, abort
@@ -588,11 +616,11 @@ console.log(items)
             moveLoop();
         };
 
-		/**
-		 * Continuous movement loop.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Continuous movement loop.
+         *
+         * @return {Void}
+         */
         function moveLoop() {
             // If there is nowhere to move anymore, stop
             if (!move.speed || pos.cur === (move.speed > 0 ? pos.end : pos.start)) {
@@ -614,11 +642,11 @@ console.log(items)
             move.lastTime = move.now;
         }
 
-		/**
-		 * Stops continuous movement.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Stops continuous movement.
+         *
+         * @return {Void}
+         */
         self.stop = function () {
             if (dragging.source === 'button') {
                 dragging.init = 0;
@@ -626,50 +654,50 @@ console.log(items)
             }
         };
 
-		/**
-		 * Activate previous item.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Activate previous item.
+         *
+         * @return {Void}
+         */
         self.prev = function () {
             self.activate(rel.activeItem == null ? 0 : rel.activeItem - 1);
         };
 
-		/**
-		 * Activate next item.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Activate next item.
+         *
+         * @return {Void}
+         */
         self.next = function () {
             self.activate(rel.activeItem == null ? 0 : rel.activeItem + 1);
         };
 
-		/**
-		 * Activate previous page.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Activate previous page.
+         *
+         * @return {Void}
+         */
         self.prevPage = function () {
             self.activatePage(rel.activePage - 1);
         };
 
-		/**
-		 * Activate next page.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Activate next page.
+         *
+         * @return {Void}
+         */
         self.nextPage = function () {
             self.activatePage(rel.activePage + 1);
         };
 
-		/**
-		 * Slide SLIDEE by amount of pixels.
-		 *
-		 * @param {Int}  delta     Pixels/Items. Positive means forward, negative means backward.
-		 * @param {Bool} immediate Reposition immediately without an animation.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Slide SLIDEE by amount of pixels.
+         *
+         * @param {Int}  delta     Pixels/Items. Positive means forward, negative means backward.
+         * @param {Bool} immediate Reposition immediately without an animation.
+         *
+         * @return {Void}
+         */
         self.slideBy = function (delta, immediate) {
             if (!delta) {
                 return;
@@ -683,27 +711,27 @@ console.log(items)
             }
         };
 
-		/**
-		 * Animate SLIDEE to a specific position.
-		 *
-		 * @param {Int}  pos       New position.
-		 * @param {Bool} immediate Reposition immediately without an animation.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Animate SLIDEE to a specific position.
+         *
+         * @param {Int}  pos       New position.
+         * @param {Bool} immediate Reposition immediately without an animation.
+         *
+         * @return {Void}
+         */
         self.slideTo = function (pos, immediate) {
             slideTo(pos, immediate);
         };
 
-		/**
-		 * Core method for handling `toLocation` methods.
-		 *
-		 * @param  {String} location
-		 * @param  {Mixed}  item
-		 * @param  {Bool}   immediate
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Core method for handling `toLocation` methods.
+         *
+         * @param  {String} location
+         * @param  {Mixed}  item
+         * @param  {Bool}   immediate
+         *
+         * @return {Void}
+         */
         function to(location, item, immediate) {
             // Optional arguments logic
             if (type(item) === 'boolean') {
@@ -727,78 +755,78 @@ console.log(items)
             }
         }
 
-		/**
-		 * Animate element or the whole SLIDEE to the start of the frame.
-		 *
-		 * @param {Mixed} item      Item DOM element, or index starting at 0. Omitting will animate SLIDEE.
-		 * @param {Bool}  immediate Reposition immediately without an animation.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Animate element or the whole SLIDEE to the start of the frame.
+         *
+         * @param {Mixed} item      Item DOM element, or index starting at 0. Omitting will animate SLIDEE.
+         * @param {Bool}  immediate Reposition immediately without an animation.
+         *
+         * @return {Void}
+         */
         self.toStart = function (item, immediate) {
             to('start', item, immediate);
         };
 
-		/**
-		 * Animate element or the whole SLIDEE to the end of the frame.
-		 *
-		 * @param {Mixed} item      Item DOM element, or index starting at 0. Omitting will animate SLIDEE.
-		 * @param {Bool}  immediate Reposition immediately without an animation.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Animate element or the whole SLIDEE to the end of the frame.
+         *
+         * @param {Mixed} item      Item DOM element, or index starting at 0. Omitting will animate SLIDEE.
+         * @param {Bool}  immediate Reposition immediately without an animation.
+         *
+         * @return {Void}
+         */
         self.toEnd = function (item, immediate) {
             to('end', item, immediate);
         };
 
-		/**
-		 * Animate element or the whole SLIDEE to the center of the frame.
-		 *
-		 * @param {Mixed} item      Item DOM element, or index starting at 0. Omitting will animate SLIDEE.
-		 * @param {Bool}  immediate Reposition immediately without an animation.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Animate element or the whole SLIDEE to the center of the frame.
+         *
+         * @param {Mixed} item      Item DOM element, or index starting at 0. Omitting will animate SLIDEE.
+         * @param {Bool}  immediate Reposition immediately without an animation.
+         *
+         * @return {Void}
+         */
         self.toCenter = function (item, immediate) {
             to('center', item, immediate);
         };
 
-		/**
-		 * Get the index of an item in SLIDEE.
-		 *
-		 * @param {Mixed} item     Item DOM element.
-		 *
-		 * @return {Int}  Item index, or -1 if not found.
-		 */
+        /**
+         * Get the index of an item in SLIDEE.
+         *
+         * @param {Mixed} item     Item DOM element.
+         *
+         * @return {Int}  Item index, or -1 if not found.
+         */
         function getIndex(item) {
             return item != null ?
                 isNumber(item) ?
-                    item >= 0 && item < items.length ? item : -1 :
-                    $items.index(item) :
+                item >= 0 && item < items.length ? item : -1 :
+                $items.index(item) :
                 -1;
         }
         // Expose getIndex without lowering the compressibility of it,
         // as it is used quite often throughout Sly.
         self.getIndex = getIndex;
 
-		/**
-		 * Get index of an item in SLIDEE based on a variety of input types.
-		 *
-		 * @param  {Mixed} item DOM element, positive or negative integer.
-		 *
-		 * @return {Int}   Item index, or -1 if not found.
-		 */
+        /**
+         * Get index of an item in SLIDEE based on a variety of input types.
+         *
+         * @param  {Mixed} item DOM element, positive or negative integer.
+         *
+         * @return {Int}   Item index, or -1 if not found.
+         */
         function getRelativeIndex(item) {
             return getIndex(isNumber(item) && item < 0 ? item + items.length : item);
         }
 
-		/**
-		 * Activates an item.
-		 *
-		 * @param  {Mixed} item Item DOM element, or index starting at 0.
-		 *
-		 * @return {Mixed} Activated item index or false on fail.
-		 */
+        /**
+         * Activates an item.
+         *
+         * @param  {Mixed} item Item DOM element, or index starting at 0.
+         *
+         * @return {Mixed} Activated item index or false on fail.
+         */
         function activate(item, force) {
             var index = getIndex(item);
 
@@ -822,14 +850,14 @@ console.log(items)
             return index;
         }
 
-		/**
-		 * Activates an item and helps with further navigation when o.smart is enabled.
-		 *
-		 * @param {Mixed} item      Item DOM element, or index starting at 0.
-		 * @param {Bool}  immediate Whether to reposition immediately in smart navigation.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Activates an item and helps with further navigation when o.smart is enabled.
+         *
+         * @param {Mixed} item      Item DOM element, or index starting at 0.
+         * @param {Bool}  immediate Whether to reposition immediately in smart navigation.
+         *
+         * @return {Void}
+         */
         self.activate = function (item, immediate) {
             var index = activate(item);
 
@@ -851,27 +879,27 @@ console.log(items)
             }
         };
 
-		/**
-		 * Activates a page.
-		 *
-		 * @param {Int}  index     Page index, starting from 0.
-		 * @param {Bool} immediate Whether to reposition immediately without animation.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Activates a page.
+         *
+         * @param {Int}  index     Page index, starting from 0.
+         * @param {Bool} immediate Whether to reposition immediately without animation.
+         *
+         * @return {Void}
+         */
         self.activatePage = function (index, immediate) {
             if (isNumber(index)) {
                 slideTo(pages[within(index, 0, pages.length - 1)], immediate);
             }
         };
 
-		/**
-		 * Return relative positions of items based on their visibility within FRAME.
-		 *
-		 * @param {Int} slideePos Position of SLIDEE.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Return relative positions of items based on their visibility within FRAME.
+         *
+         * @param {Int} slideePos Position of SLIDEE.
+         *
+         * @return {Void}
+         */
         function getRelatives(slideePos) {
             slideePos = within(isNumber(slideePos) ? slideePos : pos.dest, pos.start, pos.end);
 
@@ -927,24 +955,24 @@ console.log(items)
             return relatives;
         }
 
-		/**
-		 * Update object with relative positions.
-		 *
-		 * @param {Int} newPos
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Update object with relative positions.
+         *
+         * @param {Int} newPos
+         *
+         * @return {Void}
+         */
         function updateRelatives(newPos) {
             $.extend(rel, getRelatives(newPos));
         }
 
-		/**
-		 * Disable navigation buttons when needed.
-		 *
-		 * Adds disabledClass, and when the button is <button> or <input>, activates :disabled state.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Disable navigation buttons when needed.
+         *
+         * Adds disabledClass, and when the button is <button> or <input>, activates :disabled state.
+         *
+         * @return {Void}
+         */
         function updateButtonsState() {
             var isStart = pos.dest <= pos.start;
             var isEnd = pos.dest >= pos.end;
@@ -1003,13 +1031,13 @@ console.log(items)
             }
         }
 
-		/**
-		 * Resume cycling.
-		 *
-		 * @param {Int} priority Resume pause with priority lower or equal than this. Used internally for pauseOnHover.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Resume cycling.
+         *
+         * @param {Int} priority Resume pause with priority lower or equal than this. Used internally for pauseOnHover.
+         *
+         * @return {Void}
+         */
         self.resume = function (priority) {
             if (!o.cycleBy || !o.cycleInterval || o.cycleBy === 'items' && (!items[0] || rel.activeItem == null) || priority < self.isPaused) {
                 return;
@@ -1037,13 +1065,13 @@ console.log(items)
             }, o.cycleInterval);
         };
 
-		/**
-		 * Pause cycling.
-		 *
-		 * @param {Int} priority Pause priority. 100 is default. Used internally for pauseOnHover.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Pause cycling.
+         *
+         * @param {Int} priority Pause priority. 100 is default. Used internally for pauseOnHover.
+         *
+         * @return {Void}
+         */
         self.pause = function (priority) {
             if (priority < self.isPaused) {
                 return;
@@ -1057,23 +1085,23 @@ console.log(items)
             }
         };
 
-		/**
-		 * Toggle cycling.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Toggle cycling.
+         *
+         * @return {Void}
+         */
         self.toggle = function () {
             self[cycleID ? 'pause' : 'resume']();
         };
 
-		/**
-		 * Updates a signle or multiple option values.
-		 *
-		 * @param {Mixed} name  Name of the option that should be updated, or object that will extend the options.
-		 * @param {Mixed} value New option value.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Updates a signle or multiple option values.
+         *
+         * @param {Mixed} name  Name of the option that should be updated, or object that will extend the options.
+         * @param {Mixed} value New option value.
+         *
+         * @return {Void}
+         */
         self.set = function (name, value) {
             if ($.isPlainObject(name)) {
                 $.extend(o, name);
@@ -1082,14 +1110,14 @@ console.log(items)
             }
         };
 
-		/**
-		 * Add one or multiple items to the SLIDEE end, or a specified position index.
-		 *
-		 * @param {Mixed} element Node element, or HTML string.
-		 * @param {Int}   index   Index of a new item position. By default item is appended at the end.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Add one or multiple items to the SLIDEE end, or a specified position index.
+         *
+         * @param {Mixed} element Node element, or HTML string.
+         * @param {Int}   index   Index of a new item position. By default item is appended at the end.
+         *
+         * @return {Void}
+         */
         self.add = function (element, index) {
             var $element = $(element);
 
@@ -1113,14 +1141,14 @@ console.log(items)
             load();
         };
 
-		/**
-		 * Remove an item from SLIDEE.
-		 *
-		 * @param {Mixed} element Item index, or DOM element.
-		 * @param {Int}   index   Index of a new item position. By default item is appended at the end.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Remove an item from SLIDEE.
+         *
+         * @param {Mixed} element Item index, or DOM element.
+         * @param {Int}   index   Index of a new item position. By default item is appended at the end.
+         *
+         * @return {Void}
+         */
         self.remove = function (element) {
             if (itemNav) {
                 var index = getRelativeIndex(element);
@@ -1152,15 +1180,15 @@ console.log(items)
             }
         };
 
-		/**
-		 * Helps re-arranging items.
-		 *
-		 * @param  {Mixed} item     Item DOM element, or index starting at 0. Use negative numbers to select items from the end.
-		 * @param  {Mixed} position Item insertion anchor. Accepts same input types as item argument.
-		 * @param  {Bool}  after    Insert after instead of before the anchor.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Helps re-arranging items.
+         *
+         * @param  {Mixed} item     Item DOM element, or index starting at 0. Use negative numbers to select items from the end.
+         * @param  {Mixed} position Item insertion anchor. Accepts same input types as item argument.
+         * @param  {Bool}  after    Insert after instead of before the anchor.
+         *
+         * @return {Void}
+         */
         function moveItem(item, position, after) {
             item = getRelativeIndex(item);
             position = getRelativeIndex(position);
@@ -1187,38 +1215,38 @@ console.log(items)
             }
         }
 
-		/**
-		 * Move item after the target anchor.
-		 *
-		 * @param  {Mixed} item     Item to be moved. Can be DOM element or item index.
-		 * @param  {Mixed} position Target position anchor. Can be DOM element or item index.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Move item after the target anchor.
+         *
+         * @param  {Mixed} item     Item to be moved. Can be DOM element or item index.
+         * @param  {Mixed} position Target position anchor. Can be DOM element or item index.
+         *
+         * @return {Void}
+         */
         self.moveAfter = function (item, position) {
             moveItem(item, position, 1);
         };
 
-		/**
-		 * Move item before the target anchor.
-		 *
-		 * @param  {Mixed} item     Item to be moved. Can be DOM element or item index.
-		 * @param  {Mixed} position Target position anchor. Can be DOM element or item index.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Move item before the target anchor.
+         *
+         * @param  {Mixed} item     Item to be moved. Can be DOM element or item index.
+         * @param  {Mixed} position Target position anchor. Can be DOM element or item index.
+         *
+         * @return {Void}
+         */
         self.moveBefore = function (item, position) {
             moveItem(item, position);
         };
 
-		/**
-		 * Registers callbacks.
-		 *
-		 * @param  {Mixed} name  Event name, or callbacks map.
-		 * @param  {Mixed} fn    Callback, or an array of callback functions.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Registers callbacks.
+         *
+         * @param  {Mixed} name  Event name, or callbacks map.
+         * @param  {Mixed} fn    Callback, or an array of callback functions.
+         *
+         * @return {Void}
+         */
         self.on = function (name, fn) {
             // Callbacks map
             if (type(name) === 'object') {
@@ -1244,14 +1272,14 @@ console.log(items)
             }
         };
 
-		/**
-		 * Registers callbacks to be executed only once.
-		 *
-		 * @param  {Mixed} name  Event name, or callbacks map.
-		 * @param  {Mixed} fn    Callback, or an array of callback functions.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Registers callbacks to be executed only once.
+         *
+         * @param  {Mixed} name  Event name, or callbacks map.
+         * @param  {Mixed} fn    Callback, or an array of callback functions.
+         *
+         * @return {Void}
+         */
         self.one = function (name, fn) {
             function proxy() {
                 fn.apply(self, arguments);
@@ -1260,14 +1288,14 @@ console.log(items)
             self.on(name, proxy);
         };
 
-		/**
-		 * Remove one or all callbacks.
-		 *
-		 * @param  {String} name Event name.
-		 * @param  {Mixed}  fn   Callback, or an array of callback functions. Omit to remove all callbacks.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Remove one or all callbacks.
+         *
+         * @param  {String} name Event name.
+         * @param  {Mixed}  fn   Callback, or an array of callback functions. Omit to remove all callbacks.
+         *
+         * @return {Void}
+         */
         self.off = function (name, fn) {
             if (fn instanceof Array) {
                 for (var f = 0, fl = fn.length; f < fl; f++) {
@@ -1289,14 +1317,14 @@ console.log(items)
             }
         };
 
-		/**
-		 * Returns callback array index.
-		 *
-		 * @param  {String}   name Event name.
-		 * @param  {Function} fn   Function
-		 *
-		 * @return {Int} Callback array index, or -1 if isn't registered.
-		 */
+        /**
+         * Returns callback array index.
+         *
+         * @param  {String}   name Event name.
+         * @param  {Function} fn   Function
+         *
+         * @return {Int} Callback array index, or -1 if isn't registered.
+         */
         function callbackIndex(name, fn) {
             for (var i = 0, l = callbacks[name].length; i < l; i++) {
                 if (callbacks[name][i] === fn) {
@@ -1306,33 +1334,33 @@ console.log(items)
             return -1;
         }
 
-		/**
-		 * Reset next cycle timeout.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Reset next cycle timeout.
+         *
+         * @return {Void}
+         */
         function resetCycle() {
             if (dragging.released && !self.isPaused) {
                 self.resume();
             }
         }
 
-		/**
-		 * Calculate SLIDEE representation of handle position.
-		 *
-		 * @param  {Int} handlePos
-		 *
-		 * @return {Int}
-		 */
+        /**
+         * Calculate SLIDEE representation of handle position.
+         *
+         * @param  {Int} handlePos
+         *
+         * @return {Int}
+         */
         function handleToSlidee(handlePos) {
             return round(within(handlePos, hPos.start, hPos.end) / hPos.end * (pos.end - pos.start)) + pos.start;
         }
 
-		/**
-		 * Keeps track of a dragging delta history.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Keeps track of a dragging delta history.
+         *
+         * @return {Void}
+         */
         function draggingHistoryTick() {
             // Looking at this, I know what you're thinking :) But as we need only 4 history states, doing it this way
             // as opposed to a proper loop is ~25 bytes smaller (when minified with GCC), a lot faster, and doesn't
@@ -1343,24 +1371,24 @@ console.log(items)
             dragging.history[3] = dragging.delta;
         }
 
-		/**
-		 * Initialize continuous movement.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Initialize continuous movement.
+         *
+         * @return {Void}
+         */
         function continuousInit(source) {
             dragging.released = 0;
             dragging.source = source;
             dragging.slidee = source === 'slidee';
         }
 
-		/**
-		 * Dragging initiator.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Dragging initiator.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function dragInit(event) {
             var isTouch = event.type === 'touchstart';
             var source = event.data.source;
@@ -1424,13 +1452,13 @@ console.log(items)
             }
         }
 
-		/**
-		 * Handler for dragging scrollbar handle or SLIDEE.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Handler for dragging scrollbar handle or SLIDEE.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function dragHandler(event) {
             dragging.released = event.type === 'mouseup' || event.type === 'touchend';
             dragging.pointer = dragging.touch ? event.originalEvent[dragging.released ? 'changedTouches' : 'touches'][0] : event;
@@ -1448,8 +1476,7 @@ console.log(items)
                     // If the pointer was released, the path will not become longer and it's
                     // definitely not a drag. If not released yet, decide on next iteration
                     return dragging.released ? dragEnd() : undefined;
-                }
-                else {
+                } else {
                     // If dragging path is sufficiently long we can confidently start a drag
                     // if drag is in different direction than scroll, ignore it
                     if (o.horizontal ? abs(dragging.pathX) > abs(dragging.pathY) : abs(dragging.pathX) < abs(dragging.pathY)) {
@@ -1483,11 +1510,11 @@ console.log(items)
             slideTo(dragging.slidee ? round(dragging.initPos - dragging.delta) : handleToSlidee(dragging.initPos + dragging.delta));
         }
 
-		/**
-		 * Stops dragging and cleans up after it.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Stops dragging and cleans up after it.
+         *
+         * @return {Void}
+         */
         function dragEnd() {
             clearInterval(historyID);
             dragging.released = true;
@@ -1511,32 +1538,32 @@ console.log(items)
             dragging.init = 0;
         }
 
-		/**
-		 * Check whether element is interactive.
-		 *
-		 * @return {Boolean}
-		 */
+        /**
+         * Check whether element is interactive.
+         *
+         * @return {Boolean}
+         */
         function isInteractive(element) {
             return ~$.inArray(element.nodeName, interactiveElements) || $(element).is(o.interactive);
         }
 
-		/**
-		 * Continuous movement cleanup on mouseup.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Continuous movement cleanup on mouseup.
+         *
+         * @return {Void}
+         */
         function movementReleaseHandler() {
             self.stop();
             $doc.off('mouseup', movementReleaseHandler);
         }
 
-		/**
-		 * Buttons navigation handler.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Buttons navigation handler.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function buttonsHandler(event) {
             /*jshint validthis:true */
             stopDefault(event);
@@ -1565,13 +1592,13 @@ console.log(items)
             }
         }
 
-		/**
-		 * Mouse wheel delta normalization.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Int}
-		 */
+        /**
+         * Mouse wheel delta normalization.
+         *
+         * @param  {Event} event
+         *
+         * @return {Int}
+         */
         function normalizeWheelDelta(event) {
             // wheelDelta needed only for IE8-
             scrolling.curDelta = ((o.horizontal ? event.deltaY || event.deltaX : event.deltaY) || -event.wheelDelta);
@@ -1594,13 +1621,13 @@ console.log(items)
             return scrolling.finalDelta;
         }
 
-		/**
-		 * Mouse scrolling handler.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Mouse scrolling handler.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function scrollHandler(event) {
             // Mark event as originating in a Sly instance
             event.originalEvent[namespace] = self;
@@ -1622,13 +1649,13 @@ console.log(items)
             self.slideBy(o.scrollBy * delta);
         }
 
-		/**
-		 * Scrollbar click handler.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Scrollbar click handler.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function scrollbarHandler(event) {
             // Only clicks on scroll bar. Ignore the handle.
             if (o.clickBar && event.target === $sb[0]) {
@@ -1638,13 +1665,13 @@ console.log(items)
             }
         }
 
-		/**
-		 * Keyboard input handler.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Keyboard input handler.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function keyboardHandler(event) {
             if (!o.keyboardNavBy) {
                 return;
@@ -1652,26 +1679,28 @@ console.log(items)
 
             switch (event.which) {
                 // Left or Up
-                case o.horizontal ? 37 : 38:
-                    stopDefault(event);
+                case o.horizontal ? 37:
+                    38:
+                        stopDefault(event);
                     self[o.keyboardNavBy === 'pages' ? 'prevPage' : 'prev']();
                     break;
 
-                // Right or Down
-                case o.horizontal ? 39 : 40:
-                    stopDefault(event);
+                    // Right or Down
+                case o.horizontal ? 39:
+                    40:
+                        stopDefault(event);
                     self[o.keyboardNavBy === 'pages' ? 'nextPage' : 'next']();
                     break;
             }
         }
 
-		/**
-		 * Click on item activation handler.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Click on item activation handler.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function activateHandler(event) {
             /*jshint validthis:true */
 
@@ -1689,13 +1718,13 @@ console.log(items)
             self.activate(this);
         }
 
-		/**
-		 * Click on page button handler.
-		 *
-		 * @param {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Click on page button handler.
+         *
+         * @param {Event} event
+         *
+         * @return {Void}
+         */
         function activatePageHandler() {
             /*jshint validthis:true */
             // Accept only events from direct pages bar children.
@@ -1704,27 +1733,27 @@ console.log(items)
             }
         }
 
-		/**
-		 * Pause on hover handler.
-		 *
-		 * @param  {Event} event
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Pause on hover handler.
+         *
+         * @param  {Event} event
+         *
+         * @return {Void}
+         */
         function pauseOnHoverHandler(event) {
             if (o.pauseOnHover) {
                 self[event.type === 'mouseenter' ? 'pause' : 'resume'](2);
             }
         }
 
-		/**
-		 * Trigger callbacks for event.
-		 *
-		 * @param  {String} name Event name.
-		 * @param  {Mixed}  argX Arguments passed to callbacks.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Trigger callbacks for event.
+         *
+         * @param  {String} name Event name.
+         * @param  {Mixed}  argX Arguments passed to callbacks.
+         *
+         * @return {Void}
+         */
         function trigger(name, arg1) {
             if (callbacks[name]) {
                 l = callbacks[name].length;
@@ -1741,11 +1770,11 @@ console.log(items)
             }
         }
 
-		/**
-		 * Destroys instance and everything it created.
-		 *
-		 * @return {Void}
-		 */
+        /**
+         * Destroys instance and everything it created.
+         *
+         * @return {Void}
+         */
         self.destroy = function () {
             // Remove the reference to itself
             Sly.removeInstance(frame);
@@ -1801,11 +1830,11 @@ console.log(items)
             return self;
         };
 
-		/**
-		 * Initialize.
-		 *
-		 * @return {Object}
-		 */
+        /**
+         * Initialize.
+         *
+         * @return {Object}
+         */
         self.init = function () {
             if (self.initialized) {
                 return;
@@ -1845,7 +1874,9 @@ console.log(items)
                 if ($sb.css('position') === 'static') {
                     $sb.css('position', 'relative');
                 }
-                $movables.css({ position: 'absolute' });
+                $movables.css({
+                    position: 'absolute'
+                });
             }
 
             // Navigation buttons
@@ -1867,7 +1898,7 @@ console.log(items)
             if (o.nextPage) {
                 $nextPageButton.on(clickEvent, buttonsHandler);
             }
-            
+
             // Scrolling navigation
             $scrollSource.on(wheelEvent, scrollHandler);
 
@@ -1887,11 +1918,15 @@ console.log(items)
             }
 
             // Dragging navigation
-            $dragSource.on(dragInitEvents, { source: 'slidee' }, dragInit);
+            $dragSource.on(dragInitEvents, {
+                source: 'slidee'
+            }, dragInit);
 
             // Scrollbar dragging navigation
             if ($handle) {
-                $handle.on(dragInitEvents, { source: 'handle' }, dragInit);
+                $handle.on(dragInitEvents, {
+                    source: 'handle'
+                }, dragInit);
             }
 
             // Keyboard navigation
@@ -1932,13 +1967,13 @@ console.log(items)
         return $.removeData(element, namespace);
     };
 
-	/**
-	 * Return type of the value.
-	 *
-	 * @param  {Mixed} value
-	 *
-	 * @return {String}
-	 */
+    /**
+     * Return type of the value.
+     *
+     * @param  {Mixed} value
+     *
+     * @return {String}
+     */
     function type(value) {
         if (value == null) {
             return String(value);
@@ -1951,14 +1986,14 @@ console.log(items)
         return typeof value;
     }
 
-	/**
-	 * Event preventDefault & stopPropagation helper.
-	 *
-	 * @param {Event} event     Event object.
-	 * @param {Bool}  noBubbles Cancel event bubbling.
-	 *
-	 * @return {Void}
-	 */
+    /**
+     * Event preventDefault & stopPropagation helper.
+     *
+     * @param {Event} event     Event object.
+     * @param {Bool}  noBubbles Cancel event bubbling.
+     *
+     * @return {Void}
+     */
     function stopDefault(event, noBubbles) {
         event.preventDefault();
         if (noBubbles) {
@@ -1966,77 +2001,77 @@ console.log(items)
         }
     }
 
-	/**
-	 * Disables an event it was triggered on and unbinds itself.
-	 *
-	 * @param  {Event} event
-	 *
-	 * @return {Void}
-	 */
+    /**
+     * Disables an event it was triggered on and unbinds itself.
+     *
+     * @param  {Event} event
+     *
+     * @return {Void}
+     */
     function disableOneEvent(event) {
         /*jshint validthis:true */
         stopDefault(event, 1);
         $(this).off(event.type, disableOneEvent);
     }
 
-	/**
-	 * Resets native element scroll values to 0.
-	 *
-	 * @return {Void}
-	 */
+    /**
+     * Resets native element scroll values to 0.
+     *
+     * @return {Void}
+     */
     function resetScroll() {
         /*jshint validthis:true */
         this.scrollLeft = 0;
         this.scrollTop = 0;
     }
 
-	/**
-	 * Check if variable is a number.
-	 *
-	 * @param {Mixed} value
-	 *
-	 * @return {Boolean}
-	 */
+    /**
+     * Check if variable is a number.
+     *
+     * @param {Mixed} value
+     *
+     * @return {Boolean}
+     */
     function isNumber(value) {
         return !isNaN(parseFloat(value)) && isFinite(value);
     }
 
-	/**
-	 * Parse style to pixels.
-	 *
-	 * @param {Object}   $item    jQuery object with element.
-	 * @param {Property} property CSS property to get the pixels from.
-	 *
-	 * @return {Int}
-	 */
+    /**
+     * Parse style to pixels.
+     *
+     * @param {Object}   $item    jQuery object with element.
+     * @param {Property} property CSS property to get the pixels from.
+     *
+     * @return {Int}
+     */
     function getPx($item, property) {
         return 0 | round(String($item.css(property)).replace(/[^\-0-9.]/g, ''));
     }
 
-	/**
-	 * Make sure that number is within the limits.
-	 *
-	 * @param {Number} number
-	 * @param {Number} min
-	 * @param {Number} max
-	 *
-	 * @return {Number}
-	 */
+    /**
+     * Make sure that number is within the limits.
+     *
+     * @param {Number} number
+     * @param {Number} min
+     * @param {Number} max
+     *
+     * @return {Number}
+     */
     function within(number, min, max) {
         return number < min ? min : number > max ? max : number;
     }
 
-	/**
-	 * Saves element styles for later restoration.
-	 *
-	 * Example:
-	 *   var styles = new StyleRestorer(frame);
-	 *   styles.save('position');
-	 *   element.style.position = 'absolute';
-	 *   styles.restore(); // restores to state before the assignment above
-	 *
-	 * @param {Element} element
-	 */
+    /**
+     * Saves element styles for later restoration.
+     *
+     * Example:
+     *   var styles = new StyleRestorer(frame);
+     *   styles.save('position');
+     *   element.style.position = 'absolute';
+     *   styles.restore(); // restores to state before the assignment above
+     *
+     * @param {Element} element
+     */
     function StyleRestorer(element) {
         var self = {};
         self.style = {};
@@ -2059,14 +2094,15 @@ console.log(items)
 
     // Local WindowAnimationTiming interface polyfill
     (function (w) {
-        rAF = w.requestAnimationFrame
-            || w.webkitRequestAnimationFrame
-            || fallback;
+        rAF = w.requestAnimationFrame ||
+            w.webkitRequestAnimationFrame ||
+            fallback;
 
-		/**
-		* Fallback implementation.
-		*/
+        /**
+         * Fallback implementation.
+         */
         var prev = new Date().getTime();
+
         function fallback(fn) {
             var curr = new Date().getTime();
             var ms = Math.max(0, 16 - (curr - prev));
@@ -2075,12 +2111,12 @@ console.log(items)
             return req;
         }
 
-		/**
-		* Cancel.
-		*/
-        var cancel = w.cancelAnimationFrame
-            || w.webkitCancelAnimationFrame
-            || w.clearTimeout;
+        /**
+         * Cancel.
+         */
+        var cancel = w.cancelAnimationFrame ||
+            w.webkitCancelAnimationFrame ||
+            w.clearTimeout;
 
         cAF = function (id) {
             cancel.call(w, id);
@@ -2141,44 +2177,44 @@ console.log(items)
 
     // Default options
     Sly.defaults = {
-        slidee: null,  // Selector, DOM element, or jQuery object with DOM element representing SLIDEE.
+        slidee: null, // Selector, DOM element, or jQuery object with DOM element representing SLIDEE.
         horizontal: false, // Switch to horizontal mode.
 
         // Item based navigation
-        itemNav: null,  // Item navigation type. Can be: 'basic', 'centered', 'forceCentered'.
-        itemSelector: null,  // Select only items that match this selector.
+        itemNav: null, // Item navigation type. Can be: 'basic', 'centered', 'forceCentered'.
+        itemSelector: null, // Select only items that match this selector.
         smart: false, // Repositions the activated item to help with further navigation.
-        activateOn: null,  // Activate an item on this event. Can be: 'click', 'mouseenter', ...
+        activateOn: null, // Activate an item on this event. Can be: 'click', 'mouseenter', ...
         activateMiddle: false, // Always activate the item in the middle of the FRAME. forceCentered only.
 
         // Scrolling
-        scrollSource: null,  // Element for catching the mouse wheel scrolling. Default is FRAME.
-        scrollBy: 0,     // Pixels or items to move per one mouse scroll. 0 to disable scrolling.
-        scrollHijack: 300,   // Milliseconds since last wheel event after which it is acceptable to hijack global scroll.
+        scrollSource: null, // Element for catching the mouse wheel scrolling. Default is FRAME.
+        scrollBy: 0, // Pixels or items to move per one mouse scroll. 0 to disable scrolling.
+        scrollHijack: 300, // Milliseconds since last wheel event after which it is acceptable to hijack global scroll.
         scrollTrap: false, // Don't bubble scrolling when hitting scrolling limits.
 
         // Dragging
-        dragSource: null,  // Selector or DOM element for catching dragging events. Default is FRAME.
+        dragSource: null, // Selector or DOM element for catching dragging events. Default is FRAME.
         mouseDragging: false, // Enable navigation by dragging the SLIDEE with mouse cursor.
         touchDragging: false, // Enable navigation by dragging the SLIDEE with touch events.
         releaseSwing: false, // Ease out on dragging swing release.
-        swingSpeed: 0.2,   // Swing synchronization speed, where: 1 = instant, 0 = infinite.
+        swingSpeed: 0.2, // Swing synchronization speed, where: 1 = instant, 0 = infinite.
         elasticBounds: false, // Stretch SLIDEE position limits when dragging past FRAME boundaries.
-        dragThreshold: 3,     // Distance in pixels before Sly recognizes dragging.
-        interactive: null,  // Selector for special interactive elements.
+        dragThreshold: 3, // Distance in pixels before Sly recognizes dragging.
+        interactive: null, // Selector for special interactive elements.
 
         // Scrollbar
-        scrollBar: null,  // Selector or DOM element for scrollbar container.
+        scrollBar: null, // Selector or DOM element for scrollbar container.
         dragHandle: false, // Whether the scrollbar handle should be draggable.
         dynamicHandle: false, // Scrollbar handle represents the ratio between hidden and visible content.
-        minHandleSize: 50,    // Minimal height or width (depends on sly direction) of a handle in pixels.
+        minHandleSize: 50, // Minimal height or width (depends on sly direction) of a handle in pixels.
         clickBar: false, // Enable navigation by clicking on scrollbar.
-        syncSpeed: 0.5,   // Handle => SLIDEE synchronization speed, where: 1 = instant, 0 = infinite.
+        syncSpeed: 0.5, // Handle => SLIDEE synchronization speed, where: 1 = instant, 0 = infinite.
 
         // Pagesbar
         pagesBar: null, // Selector or DOM element for pages bar container.
         activatePageOn: null, // Event used to activate page. Can be: click, mouseenter, ...
-        pageBuilder:          // Page item generator.
+        pageBuilder: // Page item generator.
             function (index) {
                 return '<li>' + (index + 1) + '</li>';
             },
@@ -2192,21 +2228,21 @@ console.log(items)
         nextPage: null, // Selector or DOM element for "next page" button.
 
         // Automated cycling
-        cycleBy: null,  // Enable automatic cycling by 'items' or 'pages'.
-        cycleInterval: 5000,  // Delay between cycles in milliseconds.
+        cycleBy: null, // Enable automatic cycling by 'items' or 'pages'.
+        cycleInterval: 5000, // Delay between cycles in milliseconds.
         pauseOnHover: false, // Pause cycling when mouse hovers over the FRAME.
         startPaused: false, // Whether to start in paused sate.
 
         // Mixed options
-        moveBy: 300,     // Speed in pixels per second used by forward and backward buttons.
-        speed: 0,       // Animations speed in milliseconds. 0 to disable animations.
+        moveBy: 300, // Speed in pixels per second used by forward and backward buttons.
+        speed: 0, // Animations speed in milliseconds. 0 to disable animations.
         easing: 'swing', // Easing for duration based (tweening) animations.
-        startAt: null,    // Starting offset in pixels or items.
-        keyboardNavBy: null,    // Enable keyboard navigation by 'items' or 'pages'.
+        startAt: null, // Starting offset in pixels or items.
+        keyboardNavBy: null, // Enable keyboard navigation by 'items' or 'pages'.
 
         // Classes
         draggedClass: 'dragged', // Class for dragged elements (like SLIDEE or scrollbar handle).
-        activeClass: 'active',  // Class for active items and pages.
+        activeClass: 'active', // Class for active items and pages.
         disabledClass: 'disabled' // Class for disabled navigation elements.
     };
 }(jQuery, window));

@@ -6,8 +6,13 @@
   line-Height: 26px;
 }
 
+.table-head,
+.table-body {
+  width: 912px;
+}
+
 .divHeaderRow {
-  width: 900px;
+  width: 912px;
   display: flex;
   position: relative;
 }
@@ -26,7 +31,7 @@
 
 
 .divRow {
-  width: 900px;
+  width: 912px;
   display: flex;
   position: relative;
   color: #000000;

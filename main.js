@@ -44,7 +44,8 @@ $(function () {
     }());
 
     (function () {
-        let minWidth = 200,
+        let translateX = 0,
+            minWidth = 200,
             $firstTable = $('.first-table-container');
 
         $firstTable.resizable({
@@ -69,15 +70,19 @@ $(function () {
                 $('.second-table-container').width(innerWidth - e.size.width);
                 $firstTable.sly('reload');
                 $('.second-table-container').sly('reload');
+
+                translateX = middleWidth > 0 ? 0 : middleWidth;
                 $('.scrollbar-v').css({
-                    transform: `translateZ(0) translateX(${middleWidth > 0 ? 0 : middleWidth}px)`
+                    transform: `translateZ(0) translateX(${translateX}px)`
                 });
             }
         });
 
         $('.second-table-container').get(0).addEventListener('sly.scroll', (e) => {
             if ($('.second-table-container').is(e.target)) {
-                console.log(e, e.pos);
+                $('.scrollbar-v').css({
+                    transform: `translateZ(0) translateX(${translateX + e.pos.cur}px)`
+                });
             }
         }, false);
     }());

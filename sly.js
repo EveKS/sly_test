@@ -495,8 +495,8 @@
             }
             // Use tweening for basic animations with known end point
             else {
-                animation.time = min(+new Date() - animation.start, o.speed);
-                pos.cur = animation.from + animation.delta * $.easing[o.easing](animation.time / o.speed, animation.time, 0, 1, o.speed);
+                //animation.time = min(+new Date() - animation.start, o.speed);
+                //pos.cur = animation.from + animation.delta * $.easing[o.easing](animation.time / o.speed, animation.time, 0, 1, o.speed);
             }
 
             // If there is nothing more to render break the rendering loop, otherwise request new animation frame.
@@ -512,6 +512,7 @@
             // Update SLIDEE position
             if (!parallax) {
                 frame.dispatchEvent(slyScrollEvent.event);
+
                 if (transform) {
                     $slidee[0].style[transform] = gpuAcceleration + (o.horizontal ? 'translateX' : 'translateY') + '(' + (-pos.cur) + 'px)';
                 } else {

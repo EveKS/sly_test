@@ -495,8 +495,10 @@
             }
             // Use tweening for basic animations with known end point
             else {
-                //animation.time = min(+new Date() - animation.start, o.speed);
-                //pos.cur = animation.from + animation.delta * $.easing[o.easing](animation.time / o.speed, animation.time, 0, 1, o.speed);
+                if (!o.horizontal) {
+                    animation.time = min(+new Date() - animation.start, o.speed);
+                    pos.cur = animation.from + animation.delta * $.easing[o.easing](animation.time / o.speed, animation.time, 0, 1, o.speed);
+                }
             }
 
             // If there is nothing more to render break the rendering loop, otherwise request new animation frame.
@@ -540,7 +542,7 @@
                 if (last.hPos !== hPos.cur) {
                     last.hPos = hPos.cur;
                     if (transform) {
-                        $handle[0].style[transform] = gpuAcceleration + (o.horizontal ? 'translateX' : 'translateY') + '(' + hPos.cur + 'px)';
+                        $handle[0].style[transform] = gpuAcceleration + (o.horizontal ? 'translateX' : 'translateY') + '(' +  hPos.cur + 'px)';
                     } else {
                         $handle[0].style[o.horizontal ? 'left' : 'top'] = hPos.cur + 'px';
                     }
